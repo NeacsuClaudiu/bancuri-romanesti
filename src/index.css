@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-scale: 1;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    overscroll-behavior-y: contain;
+  }
+  .dark body {
+    @apply bg-[#0d0e1a] text-slate-100;
+  }
+  /* App-wide font scaling controlled from Settings. */
+  .app-scope {
+    font-size: calc(1rem * var(--font-scale));
+  }
+  ::selection {
+    background: rgba(124, 58, 237, 0.25);
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40;
+  }
+  .dark .glass {
+    @apply bg-white/[0.06] border-white/10;
+  }
+  .card {
+    @apply rounded-3xl bg-white shadow-card border border-slate-100/80;
+  }
+  .dark .card {
+    @apply bg-white/[0.04] border-white/[0.06];
+  }
+  .press {
+    @apply transition-transform active:scale-[0.97];
+  }
+  .btn-icon {
+    @apply grid place-items-center rounded-2xl transition-colors press;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Smooth momentum scrolling on the main scroll area */
+.scroll-area {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Pull-to-refresh spinner */
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
