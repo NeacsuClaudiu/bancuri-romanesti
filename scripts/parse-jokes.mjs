@@ -10,23 +10,34 @@
 //   <joke lines...>
 //   --- Banc 2 ---
 //   ...
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(__dirname, '..')
+const DATA_DIR = resolve(ROOT, 'src-data')
 
-const SRC_CANDIDATES = [
-  process.env.BANCURI_SRC,
-  resolve(ROOT, 'src-data', 'bancuri_romanesti.txt'),
-  resolve(ROOT, '..', '..', 'Descarcari', 'bancuri_romanesti.txt'),
-  'D:/Descarcari/bancuri_romanesti.txt',
-].filter(Boolean)
+// Toate arhivele .txt din src-data/ sunt citite și îmbinate automat.
+// Ca să adaugi bancuri noi: pune un fișier .txt nou în src-data/ și rulează `npm run parse`.
+// (BANCURI_SRC poate forța o singură arhivă anume, pentru testare.)
+let SOURCES = []
+if (process.env.BANCURI_SRC && existsSync(process.env.BANCURI_SRC)) {
+  SOURCES = [process.env.BANCURI_SRC]
+} else if (existsSync(DATA_DIR)) {
+  SOURCES = readdirSync(DATA_DIR)
+    .filter((f) => f.toLowerCase().endsWith('.txt'))
+    .sort()
+    .map((f) => resolve(DATA_DIR, f))
+}
+// Fallback la arhiva originală dacă src-data/ e gol.
+if (!SOURCES.length) {
+  const legacy = ['D:/Descarcari/bancuri_romanesti.txt', resolve(ROOT, '..', '..', 'Descarcari', 'bancuri_romanesti.txt')]
+  SOURCES = legacy.filter((p) => existsSync(p)).slice(0, 1)
+}
 
-const SRC = SRC_CANDIDATES.find((p) => existsSync(p))
-if (!SRC) {
-  console.error('❌ Nu găsesc arhiva de bancuri. Locuri verificate:\n' + SRC_CANDIDATES.join('\n'))
+if (!SOURCES.length) {
+  console.error('❌ Nu găsesc nicio arhivă .txt în src-data/. Pune un fișier acolo și reîncearcă.')
   process.exit(1)
 }
 
@@ -70,7 +81,10 @@ function fallbackMeta(rawName) {
 }
 
 // ---- Read & split by category ----------------------------------------------
-const raw = readFileSync(SRC, 'utf8').replace(/\r\n/g, '\n')
+// Îmbină toate arhivele. Categoriile cu același nume se contopesc automat
+// (după id), iar dedup-ul de la final elimină bancurile care se repetă între arhive.
+const raw = SOURCES.map((p) => readFileSync(p, 'utf8').replace(/\r\n/g, '\n'))
+  .join('\n\n============================================================\n\n')
 const lines = raw.split('\n')
 
 const SEP = /^={5,}\s*$/
@@ -182,12 +196,27 @@ for (const { meta, jokes: blocks } of rawCategories.values()) {
   })
 }
 
-// De-duplicate exact repeated jokes (archives often repeat).
+// De-duplicate. Cheia ignoră diacriticele, majusculele, punctuația și spațiile,
+// deci prinde și „aceeași glumă scrisă puțin diferit", nu doar copiile identice.
+function dedupKey(text) {
+  return text
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '') // scoate diacriticele
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ') // punctuație / linii noi -> spațiu
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 const seen = new Set()
 const deduped = []
+let removed = 0
 for (const j of jokes) {
-  const key = j.t.toLowerCase().replace(/\s+/g, ' ').trim()
-  if (seen.has(key)) continue
+  const key = dedupKey(j.t)
+  if (key.length < 3 || seen.has(key)) {
+    removed++
+    continue
+  }
   seen.add(key)
   deduped.push(j)
 }
@@ -208,8 +237,9 @@ if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
 writeFileSync(OUT, JSON.stringify(db))
 
 const sizeKb = (Buffer.byteLength(JSON.stringify(db)) / 1024).toFixed(0)
-console.log(`✅ Sursă: ${SRC}`)
-console.log(`✅ ${db.total} bancuri în ${db.categories.length} categorii -> ${OUT} (${sizeKb} KB)`)
+console.log(`✅ ${SOURCES.length} arhivă(e): ${SOURCES.map((p) => p.split(/[\\/]/).pop()).join(', ')}`)
+console.log(`✅ ${jokes.length} bancuri citite, ${removed} duplicate eliminate`)
+console.log(`✅ ${db.total} bancuri unice în ${db.categories.length} categorii -> jokes.json (${sizeKb} KB)`)
 console.log(
   'Categorii:\n' +
     db.categories.map((c) => `   ${c.emoji}  ${c.name.padEnd(20)} ${c.count}`).join('\n')

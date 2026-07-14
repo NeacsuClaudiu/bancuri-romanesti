@@ -101,12 +101,18 @@ bancuri-romanesti/
 
 ## 🔄 Actualizarea bancurilor
 
-Baza de date este generată din arhivă. Pentru a o schimba:
+Baza de date este generată din arhive. Poți avea **oricâte arhive** — toate fișierele
+`.txt` din folderul `src-data/` sunt citite și îmbinate automat.
 
-1. Înlocuiește `D:/Descarcari/bancuri_romanesti.txt` (sau setează `BANCURI_SRC`), ori copiază
-   arhiva în `src-data/bancuri_romanesti.txt`.
+**Ca să adaugi bancuri noi:**
+1. Pune un fișier `.txt` nou în `src-data/` (ex. `bancuri_2025.txt`), în același format.
 2. Rulează `npm run parse`.
-3. Gata — `public/data/jokes.json` este regenerat, cu categorii și număr recalculate.
+3. Gata — `public/data/jokes.json` este regenerat.
+
+**Duplicatele nu se adună:** la fiecare rulare, parserul elimină bancurile care se repetă
+(atât copiile identice, cât și variantele aproape-identice — diferențe de majuscule,
+diacritice sau punctuație). Categoriile cu același nume din arhive diferite se contopesc.
+Vezi în consolă câte duplicate au fost eliminate.
 
 **Format arhivă** (detectat automat):
 ```
