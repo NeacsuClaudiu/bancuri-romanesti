@@ -6,7 +6,7 @@ import { useStore } from './store/useStore'
 import { useReader } from './store/useReader'
 import { useThemeEffect } from './hooks/useTheme'
 import { useShake } from './hooks/useShake'
-import { setPremium } from './lib/admob'
+import { setPremium, initAds } from './lib/admob'
 
 import { Splash } from './components/Splash'
 import { BottomNav } from './components/BottomNav'
@@ -100,6 +100,10 @@ export default function App() {
   useEffect(() => {
     setPremium(premium)
   }, [premium])
+
+  useEffect(() => {
+    initAds().catch(() => { /* ignore */ })
+  }, [])
 
   if (error) return <Splash error={error} />
   if (!dbReady || !ready) return <Splash />

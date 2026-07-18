@@ -7,6 +7,7 @@ import { useStore } from '../store/useStore'
 import { useJokeActions } from '../hooks/useJokeActions'
 import { useSwipe } from '../hooks/useSwipe'
 import { haptic } from '../lib/share'
+import { onJokeRead } from '../lib/admob'
 
 export function Reader() {
   const { open, queue, index, title, close, next, prev } = useReader()
@@ -18,10 +19,12 @@ export function Reader() {
   const { onCopy, onShare, onToggleFavorite } = useJokeActions()
 
   // Record read + history whenever the visible joke changes.
+  // Also ping AdMob counter (shows interstitial every 15 jokes read).
   useEffect(() => {
     if (open && id) {
       markRead(id)
       pushHistory(id)
+      onJokeRead().catch(() => { /* ignore */ })
     }
   }, [open, id, markRead, pushHistory])
 

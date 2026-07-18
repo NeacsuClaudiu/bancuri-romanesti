@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bancuri Românești</string>
+    <string name="title_activity_main">Bancuri Românești</string>
+    <string name="package_name">com.polarbearstudio.bancuri</string>
+    <string name="custom_url_scheme">com.polarbearstudio.bancuri</string>
+</resources>

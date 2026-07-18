@@ -5,7 +5,7 @@ import { useStore } from '../store/useStore'
 import { useToast } from '../store/useToast'
 import { exportBackup, importBackup } from '../lib/backup'
 import { requestMotionPermission } from '../hooks/useShake'
-import { setPremium } from '../lib/admob'
+import { setPremium, isNativePlatform, buyRemoveAds, getRemoveAdsPrice, showRewarded, grantAdFreeHours } from '../lib/admob'
 import { allJokes } from '../data/jokesRepo'
 import type { ThemeMode } from '../types'
 
@@ -41,10 +41,28 @@ export function Settings() {
     update({ shake: v })
   }
 
-  const togglePremium = (v: boolean) => {
-    update({ premium: v })
-    setPremium(v)
-    show(v ? 'Premium activat — fără reclame' : 'Premium dezactivat', v ? '👑' : 'ℹ️')
+  const onBuyRemoveAds = () => {
+    if (!isNativePlatform()) {
+      show('Cumpărături disponibile doar în aplicația Android', 'ℹ️')
+      return
+    }
+    buyRemoveAds()
+  }
+
+  const onWatchAdForFreeDay = async () => {
+    if (!isNativePlatform()) {
+      show('Reclamele apar doar în aplicația Android', 'ℹ️')
+      return
+    }
+    show('Se încarcă reclama…', '🎬')
+    const ok = await showRewarded()
+    if (ok) {
+      grantAdFreeHours(24)
+      update({ premium: true })
+      show('Ai primit 24 de ore fără reclame!', '🎉')
+    } else {
+      show('Reclama nu s-a putut afișa. Încearcă din nou.', '⚠️')
+    }
   }
 
   return (
@@ -126,18 +144,49 @@ export function Settings() {
 
       {/* Premium */}
       <Section title="Premium" icon={<Crown size={18} />}>
-        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 p-4 text-white shadow-glow">
-          <div className="flex items-center justify-between">
+        {settings.premium ? (
+          <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 p-4 text-white shadow-glow">
             <div className="flex items-center gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/25 text-xl">👑</span>
               <div>
-                <p className="font-extrabold">Bancuri Premium</p>
-                <p className="text-xs text-white/85">Elimină reclamele pentru totdeauna</p>
+                <p className="font-extrabold">Premium activ</p>
+                <p className="text-xs text-white/85">Fără reclame. Mulțumim că susții aplicația!</p>
               </div>
             </div>
-            <Switch value={settings.premium} onChange={togglePremium} light />
           </div>
-        </div>
+        ) : (
+          <div className="space-y-2">
+            <button
+              onClick={onBuyRemoveAds}
+              className="w-full overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 p-4 text-left text-white shadow-glow transition active:scale-[0.98]"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/25 text-xl">👑</span>
+                  <div>
+                    <p className="font-extrabold">Elimină reclamele</p>
+                    <p className="text-xs text-white/85">Plată unică, fără reclame pentru totdeauna</p>
+                  </div>
+                </div>
+                <span className="whitespace-nowrap rounded-2xl bg-white/25 px-3 py-1.5 text-sm font-extrabold">
+                  {getRemoveAdsPrice() || '1.99 EUR'}
+                </span>
+              </div>
+            </button>
+            <button
+              onClick={onWatchAdForFreeDay}
+              className="w-full rounded-3xl border-2 border-brand-500 bg-brand-50 p-4 text-left text-brand-700 shadow-card transition active:scale-[0.98] dark:border-brand-400 dark:bg-brand-400/10 dark:text-brand-200"
+            >
+              <div className="flex items-center gap-3">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-500/15 text-xl">🎬</span>
+                <div>
+                  <p className="font-extrabold">Vezi o reclamă → 24h fără reclame</p>
+                  <p className="text-xs opacity-75">Alternativa gratuită</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        )}
       </Section>
 
       {/* Language */}

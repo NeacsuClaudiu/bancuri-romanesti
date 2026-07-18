@@ -11,7 +11,13 @@ dist-ssr
 vite.config.js
 vite.config.d.ts
 
-# Capacitor / Android
-/android
+# Capacitor / Android — track sources, ignore build outputs and secrets
+android/.gradle/
+android/app/build/
+android/build/
+android/.kotlin/
+android/local.properties
+android/keystore.properties
+KEYSTORE-CREDENTIALS.txt
+*.keystore
 /ios
-.gradle
