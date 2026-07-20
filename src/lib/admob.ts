@@ -6,12 +6,13 @@
 // - On web, all functions are no-ops (safe to call from React components).
 // - When Capacitor detects the native platform, real ads and billing kick in.
 
-// Real AdMob unit ids for Bancuri Românești (fill after AdMob app creation).
-// Fallback = Google TEST ids (safe during development, always work).
+// Real AdMob unit ids for Bancuri Românești.
+// App ID: ca-app-pub-5712899602059155~3771189190 (vezi scripts/patch-android.mjs)
+// Banner nu e folosit nicăieri în aplicație -> rămâne id-ul de TEST.
 export const AD_UNITS = {
   banner: 'ca-app-pub-3940256099942544/6300978111',
-  interstitial: 'ca-app-pub-3940256099942544/1033173712',
-  rewarded: 'ca-app-pub-3940256099942544/5224354917',
+  interstitial: 'ca-app-pub-5712899602059155/5511500487',
+  rewarded: 'ca-app-pub-5712899602059155/8428619503',
 }
 
 // ---- IAP config ----

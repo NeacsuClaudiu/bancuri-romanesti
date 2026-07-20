@@ -16,15 +16,23 @@ if (!fs.existsSync(manifestPath)) {
 
 let xml = fs.readFileSync(manifestPath, 'utf8');
 
-// 1) AdMob APPLICATION_ID (TEST - inlocuieste la publicare cu ID-ul real)
+// 1) AdMob APPLICATION_ID (ID-ul REAL al aplicatiei Bancuri Romanesti)
+const ADMOB_APP_ID = 'ca-app-pub-5712899602059155~3771189190';
 const ADMOB_META = `        <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>`;
+            android:value="${ADMOB_APP_ID}"/>`;
 if (!xml.includes('com.google.android.gms.ads.APPLICATION_ID')) {
   xml = xml.replace(/(<application[^>]*>)/, `$1\n\n${ADMOB_META}`);
-  console.log('+ AdMob APPLICATION_ID adaugat (ID de TEST Google)');
+  console.log('+ AdMob APPLICATION_ID adaugat:', ADMOB_APP_ID);
+} else if (!xml.includes(ADMOB_APP_ID)) {
+  // suprascrie un ID vechi (de ex. cel de TEST) - altfel `cap sync` il lasa neatins
+  xml = xml.replace(
+    /(<meta-data\s+android:name="com\.google\.android\.gms\.ads\.APPLICATION_ID"\s+android:value=")[^"]*(")/,
+    `$1${ADMOB_APP_ID}$2`
+  );
+  console.log('~ AdMob APPLICATION_ID actualizat:', ADMOB_APP_ID);
 } else {
-  console.log('= AdMob APPLICATION_ID exista deja');
+  console.log('= AdMob APPLICATION_ID deja corect');
 }
 
 // 2) portrait pe activitate (app-ul de bancuri se citeste vertical)
