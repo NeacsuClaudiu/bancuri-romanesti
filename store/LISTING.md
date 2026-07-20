@@ -12,7 +12,7 @@ Copiază-lipește în Play Console → Store presence → Main store listing.
 | App or game | **App** |
 | Free/Paid | Free (cu reclame + achiziție în aplicație) |
 | Privacy policy | `https://neacsuclaudiu.github.io/bancuri-romanesti/privacy.html` |
-| Email contact | nclaudiu27@gmail.com |
+| Email contact (public) | polarbearstudio.dev@gmail.com |
 
 ## Short description (max 80 caractere)
 
