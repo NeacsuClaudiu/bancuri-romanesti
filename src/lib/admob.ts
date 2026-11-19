@@ -15,6 +15,19 @@ export const AD_UNITS = {
   rewarded: 'ca-app-pub-5712899602059155/8428619503',
 }
 
+// Test ads. Cere reclame de test in loc de cele reale, ca sa nu strici contul
+// AdMob cu invalid traffic in timpul testarii (mai ales daca atingi o reclama).
+// APK-ul se construieste din bundle de productie, deci `DEV` e false pe telefon
+// -> pentru un APK de test: VITE_ADMOB_TEST=1 npm run cap:sync
+// Optional, VITE_ADMOB_TEST_DEVICES=id1,id2 marcheaza dispozitivele ca test
+// devices (id-ul apare in logcat la prima cerere de reclama).
+const TEST_ADS: boolean =
+  import.meta.env.DEV || import.meta.env.VITE_ADMOB_TEST === '1'
+const TEST_DEVICES: string[] = String(import.meta.env.VITE_ADMOB_TEST_DEVICES || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
+
 // ---- IAP config ----
 const IAP_REMOVE_ADS = 'remove_ads'
 const NO_ADS_KEY = 'bancuri-no-ads'
@@ -68,7 +81,10 @@ export async function initAds(): Promise<void> {
     const mod = await import('@capacitor-community/admob')
     admob = (mod as any).AdMob
     if (!admobInitialized) {
-      await admob.initialize({})
+      await admob.initialize({
+        initializeForTesting: TEST_ADS,
+        testingDevices: TEST_DEVICES,
+      })
       admobInitialized = true
 
       // Consent (UMP) - only shown to EU users, no-op otherwise
@@ -108,7 +124,7 @@ export async function initAds(): Promise<void> {
 async function prepareInterstitial() {
   if (!admob || premium || interstitialReady) return
   try {
-    await admob.prepareInterstitial({ adId: AD_UNITS.interstitial })
+    await admob.prepareInterstitial({ adId: AD_UNITS.interstitial, isTesting: TEST_ADS })
     interstitialReady = true
   } catch { /* ignore */ }
 }
@@ -132,7 +148,7 @@ export async function onJokeRead(): Promise<void> {
 async function prepareRewarded() {
   if (!admob || rewardReady) return
   try {
-    await admob.prepareRewardVideoAd({ adId: AD_UNITS.rewarded })
+    await admob.prepareRewardVideoAd({ adId: AD_UNITS.rewarded, isTesting: TEST_ADS })
     rewardReady = true
   } catch { /* ignore */ }
 }
@@ -163,7 +179,7 @@ export function grantAdFreeHours(hours: number) {
 export async function showBanner(): Promise<void> {
   if (premium || !admob) return
   try {
-    await admob.showBanner({ adId: AD_UNITS.banner, position: 'BOTTOM_CENTER', margin: 0 })
+    await admob.showBanner({ adId: AD_UNITS.banner, position: 'BOTTOM_CENTER', margin: 0, isTesting: TEST_ADS })
   } catch { /* ignore */ }
 }
 export async function hideBanner(): Promise<void> {
