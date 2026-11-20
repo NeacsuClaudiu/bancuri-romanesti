@@ -21,3 +21,8 @@ android/keystore.properties
 KEYSTORE-CREDENTIALS.txt
 *.keystore
 /ios
+
+store/promo/raw/
+store/promo/upload/
+store/promo/video/
+store/promo/contact*.png

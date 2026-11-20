@@ -49,8 +49,25 @@ export function Reader() {
       haptic(8)
       prev()
     },
-    onSwipeDown: close,
   })
+
+  // Butonul "înapoi" al telefonului (și al browserului) închide bancul, nu aplicația:
+  // la deschidere punem o intrare în istoric; "înapoi" o consumă și închide cititorul.
+  // Dacă închizi cu X, scoatem noi intrarea, ca istoricul să rămână curat.
+  useEffect(() => {
+    if (!open) return
+    window.history.pushState({ reader: true }, '')
+    let closedByBack = false
+    const onPop = () => {
+      closedByBack = true
+      close()
+    }
+    window.addEventListener('popstate', onPop)
+    return () => {
+      window.removeEventListener('popstate', onPop)
+      if (!closedByBack && window.history.state?.reader) window.history.back()
+    }
+  }, [open, close])
 
   const cat = joke ? categoryById(joke.c) : undefined
   const atStart = index <= 0
